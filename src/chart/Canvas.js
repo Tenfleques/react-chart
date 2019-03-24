@@ -46,7 +46,7 @@ class Canvas extends Component{
                     left : false 
                 },
                 x_at_mouse_down: 0,
-                slide_factor: 1//0.8
+                slide_factor: 1
             },
             y : props.y,
             x : props.x,
@@ -54,9 +54,14 @@ class Canvas extends Component{
                 range_x: [],
                 range_y: {},
                 x : [],
-                y : {}
+                y : {},
+                y_lower : [],
+                all_y : []
             },
-            info_box: -1
+            info_box: {
+                index : -1,
+                x : 0
+            }
         }
         var max_y = 100;
         //get num_digits of max y, to calculate the width of y axis
@@ -69,8 +74,23 @@ class Canvas extends Component{
     componentWillMount(){
         this.scaleData();
     }
-    componentDidMount(){
-        this.plotLower(this.state.x, this.state.y);
+    toggleYGrid(){
+        let grid = this.state.grid;
+        grid.y = !grid.y;
+        this.setState({
+            grid : grid
+        }, () => {
+            this.plotUpper();
+        });
+    }
+    toggleXGrid = () => {
+        let grid = this.state.grid;
+        grid.x = !grid.x;
+        this.setState({
+            grid : grid
+        }, () => {
+            this.plotUpper();
+        });
     }
     scaleData = (xx,yy) => {   
         if(!xx){
@@ -117,12 +137,14 @@ class Canvas extends Component{
                 y_lower : y_lower,
                 all_y : allY
             }
-        },() => {this.plotAxes(xx,allY)});
+        });
         return {
-            "x" : x,
-            "y" : y,
-            "y_lower" : y_lower,
-            "all_y" : allY
+            range_x : xx,
+            range_y : yy,
+            x: x,
+            y: y,
+            y_lower : y_lower,
+            all_y : allY
         }
     }
     invertScaleY = (scaled_value, min_y, range) => {
@@ -215,29 +237,32 @@ class Canvas extends Component{
                 mx_x = Math.max(...xx);
 
         const format = this.getFormat(mx_x - mn_x);
-
-        var x_level =  this.state.axes.y.width + 5; //initial point
+        var x_level =  this.state.axes.y.width - 5; //initial point
+                      
+        ctx.beginPath();
+        ctx.lineTo(x_level, 0);
+        ctx.lineTo(x_level, this.state.height);  
+        ctx.stroke(); 
+        
         for(var j = 0, i = 1; j < num_xs; j++, --i){            
             const closest_index = this.state.scaled.x.findIndex(a => a > x_level);
             if(closest_index !== -1){
                 ctx.fillText(new Date(this.state.scaled.range_x[closest_index]).format(format),x_level, this.state.height + this.state.axes.x.height/2);
-            }
-            if(this.state.grid.y && j){                
-                ctx.beginPath();
-                ctx.lineTo(x_level, this.state.height + this.state.axes.x.height/2);
-                ctx.lineTo(x_level, this.state.height + this.state.axes.x.height/2);  
-                ctx.stroke(); 
-            }             
+            }            
             x_level += space;
+            if(this.state.grid.x){                
+                ctx.beginPath();
+                ctx.lineTo(x_level, 0);
+                ctx.lineTo(x_level, this.state.height);  
+                ctx.stroke(); 
+            } 
         }
-         
     }
     plotUpper = (xx, yy) => {
         if(!xx){
             xx = this.state.x;
             yy = this.state.y;
         }
-
         const canvas = this.refs.canvas_upper;
         const ctx = canvas.getContext("2d");
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -254,6 +279,8 @@ class Canvas extends Component{
             y[k] = yy[k].slice(start_index, end_index);
         }
         const scaled = this.scaleData(x,y);  
+        //console.log(scaled)
+        this.plotAxes(scaled.range_x,scaled.all_y)
 
         ctx.lineWidth = .5;
         for(var i in scaled.y){
@@ -266,29 +293,37 @@ class Canvas extends Component{
         }
         
     }
-    plotLower = (x,y) => {
+    plotLower = (x,y, width) => {
         if(!x){
             x = this.state.x;
             y = this.state.y;
         }
-
-        const scaled = this.scaleData(x,y);
-        const canvas = this.refs.canvas_lower;
-        const ctx = canvas.getContext("2d");
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.lineWidth = 1;
-        for(var i in scaled.y_lower){
-            ctx.strokeStyle = this.props.colors[i];
-            ctx.beginPath(); 
-            for(var j = 0; j < scaled.y_lower[i].length; ++ j){
-                ctx.lineTo(scaled.x[j], scaled.y_lower[i][j]);
-                ctx.stroke();  
-            }
+        
+        const st = this.state;
+        st.x = x;
+        st.y = y;
+        if(width){
+            width = Math.max(width,220)
+            st.width = width;
+            st.slider.x = 0.5 * width;
+            st.slider.width = 0.4 * width;
+            st.info_box.index = -1;
         }
-        this.setState({
-            x: x,
-            y: y
-        }, () => {
+
+        this.setState(st, () => {
+            const scaled = this.scaleData(x,y);
+            const canvas = this.refs.canvas_lower;
+            const ctx = canvas.getContext("2d");
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.lineWidth = 1;
+            for(var i in scaled.y_lower){
+                ctx.strokeStyle = this.props.colors[i];
+                ctx.beginPath(); 
+                for(var j = 0; j < scaled.y_lower[i].length; ++ j){
+                    ctx.lineTo(scaled.x[j], scaled.y_lower[i][j]);
+                    ctx.stroke();  
+                }
+            }
             this.plotSlider();
             this.plotUpper(x,y);   
         });
@@ -331,7 +366,7 @@ class Canvas extends Component{
         ctx.fillStyle = this.state.slider.fill;
         ctx.fill();
     }
-    mouseDown = (e) => {
+    mouseDown = (e) =>{
         const canvas = this.refs.canvas_lower;
         const pos = e.clientX || e.touches[0].clientX;
 
@@ -343,6 +378,7 @@ class Canvas extends Component{
         const rel_pos = pos - canvas.getBoundingClientRect().left;
         
         let slider = this.state.slider
+        
         const pullArea = {
             "left" : {
                 "lower" : slider.x - slider.lineWidth,
@@ -356,14 +392,14 @@ class Canvas extends Component{
         }
 
         if(rel_pos > pullArea.left.upper 
-            && rel_pos < pullArea.right.lower            ){ //we are draging whole slider
-            
+            && rel_pos < pullArea.right.lower){ //we are draging whole slider
+
             slider.drag = true;
             slider.x_at_mouse_down = rel_pos;
             this.setState({slider});
 
         }else if(rel_pos >= pullArea.left.lower && rel_pos <= pullArea.left.upper){ //we are pulling to the left
-            
+
             slider.x_at_mouse_down = rel_pos;
             slider.grow.left = true;
 
@@ -392,7 +428,7 @@ class Canvas extends Component{
         var displacement = (rel_pos - slider.x_at_mouse_down) * slider.slide_factor;
         slider.x_at_mouse_down = rel_pos;  
 
-        if(this.state.slider.drag){             
+        if(this.state.slider.drag){            
             // slider.slide_factor makes sliding it smoother
             const ctrl = displacement + slider.x;
             if( ctrl < this.state.axes.y.width){
@@ -401,9 +437,7 @@ class Canvas extends Component{
                 displacement = this.state.width - (slider.width + slider.x);
                 slider.drag = false;
             }
-            slider.x += displacement;
-            this.setState({slider});
-            this.plotLower();
+            slider.x += displacement;            
         }
         else if(this.state.slider.grow.left){
             const ctrl = displacement + slider.x;
@@ -412,8 +446,6 @@ class Canvas extends Component{
             if(ctrl > this.state.axes.y.width && width_ctrl > slider.min_width){
                 slider.x += displacement;
                 slider.width -= displacement;
-                this.setState({slider});
-                this.plotLower();
             }
             
         }else if(this.state.slider.grow.right){
@@ -424,10 +456,11 @@ class Canvas extends Component{
                 && width_ctrl < this.state.width
                 && width_ctrl > slider.min_width){
                 slider.width += displacement;
-                this.setState({slider});
-                this.plotLower();
             }
+        }else{
+            return;
         }
+        this.setState({slider},this.plotLower);
     }
     moveOverUpper = (e) =>{
         const canvas = this.refs.canvas_upper;
@@ -501,7 +534,7 @@ class Canvas extends Component{
         );
     }   
     getInforBoxClass(){
-        const index = this.state.info_box.x || -1;
+        const index = this.state.info_box.index || -1;
         return (index < 0) ? "info-box d-none" : "info-box d-flex";
     }
     render () {
@@ -522,12 +555,10 @@ class Canvas extends Component{
                     ref="canvas_lower" 
                     width={this.state.width} 
                     height={this.state.lower_height} 
-                    onMouseDown={this.mouseDown.bind(this)} 
+                    onMouseDown={this.mouseDown} 
                     onMouseMove={this.mouseMove} 
                     onMouseUp={this.mouseUp} 
-                    onPointerDown={this.mouseDown} 
-                    onPointerMove={this.mouseMove} 
-                    onPointerDown={this.mouseDown} 
+                    
                     onTouchStart={this.mouseDown}
                     onTouchMove={this.mouseMove}
                     onTouchEnd={this.mouseUp}

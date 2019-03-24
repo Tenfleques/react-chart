@@ -32,8 +32,10 @@ class App extends Component {
           <h1 className="mx-3">Statistics</h1>
           {this.themeSwitcher()}
         </div>
-        <div className="mt-5 pt-3">
-          <div className="row my-3 mt-5"><Chart chart={0}/></div>
+        <div className="mt-5">
+          <div className="row my-3">
+            <Chart chart={0}/>
+          </div>
           <div className="row my-3"><Chart chart={1}/></div>
           <div className="row my-3"><Chart chart={2}/></div>
           <div className="row my-3"><Chart chart={3}/></div>

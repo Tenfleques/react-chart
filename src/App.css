@@ -25,22 +25,36 @@ div#root{
 .App.charcoal, .App .charcoal {
   background-color: #353C51;
 }
-.App.dracula {
-  background-color: #282a36;
+
+button:active {
+  outline: none;
+  border: none;
 }
 
-.App.light canvas, .App.dark canvas{
-  background-color: transparent;
-}
+button:focus {outline:0;}
+
 
 button{
-  font-size: 1.5rem;
   margin: 1rem;
   border-radius: 3rem;
   padding: 0.3rem 1rem;
-  border-style: solid;
   border-width: 1px;
+  border-style: outset;
   background: none;
+}
+button.action-btn {
+  font-size: 1.5rem;
+}
+
+.mojave .toggle-grid{
+  color: #353C51;
+}
+
+.toggle-grid{
+  font-size: 1rem;
+}
+.toggle-grid.active{
+  background-color: rgb(61, 194, 63);
 }
 div{
   text-align: center;
@@ -95,6 +109,14 @@ div.row{
 .text-center{
   text-align: center;
 }
+.border-bottom{
+  border-bottom: #eee;
+  border-bottom-style: solid;
+  border-bottom-width: 1px;
+}
+
+
+
 .d-block{
   display: block;
 }

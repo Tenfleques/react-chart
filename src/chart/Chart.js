@@ -14,7 +14,10 @@ class Chart extends Component{
             names: Object.keys(data[props.chart].names),
             active: {},
             x : [],
-            y : {}
+            y : {},
+            width : document.body.offsetWidth - 350,
+            grid_x : false,
+            grid_y : true
         }
         for (var ky in this.state.names){
             this.state.active[this.state.names[ky]] = true;
@@ -33,9 +36,22 @@ class Chart extends Component{
         this.state.y = y; 
         this.canvasElement = React.createRef();       
     }
-    getWidth(){
-        const w = document.body.offsetWidth - 400;
-        return w;
+    updateDimensions = () => {
+        const w = document.body.offsetWidth - 350;
+        this.setState({
+            width : w
+        },()=>{
+            this.canvasElement.current.plotLower(this.state.x, this.activeData(), w)
+        });
+    }
+    componentWillMount() {
+        this.updateDimensions();
+    }
+    componentDidMount() {
+        window.addEventListener("resize", this.updateDimensions);
+    }
+    componentWillUnmount() {
+        window.removeEventListener("resize", this.updateDimensions);
     }
     activeData = () => {       
         let active_columns = {};
@@ -58,7 +74,7 @@ class Chart extends Component{
                             let active = this.state.active;
                             active[k[0]] = !active[k[0]];
                             this.setState({active})
-                            this.canvasElement.current.plotLower(this.state.x, this.activeData());
+                            this.canvasElement.current.plotLower(this.state.x, this.activeData(), this.state.width);
                         }
                     }
                 >
@@ -72,17 +88,48 @@ class Chart extends Component{
             )
         });
     }
-    render() {
-        
+    settingsRow = () => {
         return (
             <div>
+                 <button 
+                    key = "toggle-y-grid"
+                    className={(this.state.grid_y)? "toggle-grid active" : "toggle-grid"} 
+                    onClick={() => {
+                           this.setState({grid_y : !this.state.grid_y})
+                           this.canvasElement.current.toggleYGrid();
+                        }
+                    }
+                >
+                toggle Y grid
+                </button>
+                <button 
+                    key = "toggle-x-grid"
+                    className={(this.state.grid_x)? "toggle-grid active" : "toggle-grid"} 
+                    onClick={() => {
+                           this.setState({grid_x : !this.state.grid_x})
+                           this.canvasElement.current.toggleXGrid();
+                        }
+                    }
+                >
+                toggle X grid
+                </button>
+            </div>
+        )
+    }
+    render() {
+        return (
+            <div className="mb-3 border-bottom">
+                <h2>Chart {this.props.chart + 1}</h2>
+                <div className="row mx-3">
+                    {this.settingsRow()}
+                </div>
                 <Canvas 
                     ref={this.canvasElement} 
                     x={this.state.x} 
                     y={this.activeData()} 
                     colors={this.state.data.colors}
                     names={this.state.data.names} 
-                    width={this.getWidth()}
+                    width={this.state.width}
                     />
 
                 <div className="row mx-3">
