@@ -1,11 +1,11 @@
 self.__precacheManifest = [
   {
-    "revision": "6a3e1d53ed74e5d1f1eb",
+    "revision": "185a4f6c0a1b1e5cc493",
     "url": "/react-chart/static/css/main.3ca5c292.chunk.css"
   },
   {
-    "revision": "6a3e1d53ed74e5d1f1eb",
-    "url": "/react-chart/static/js/main.17af8d96.chunk.js"
+    "revision": "185a4f6c0a1b1e5cc493",
+    "url": "/react-chart/static/js/main.483d41a1.chunk.js"
   },
   {
     "revision": "3b99462e151525fa4388",
@@ -16,7 +16,7 @@ self.__precacheManifest = [
     "url": "/react-chart/static/js/2.923fd23d.chunk.js"
   },
   {
-    "revision": "bbeb3141bfff7255c7de1a1e7a66eb76",
+    "revision": "b1d6979996683c3de678d887aab02943",
     "url": "/react-chart/index.html"
   }
 ];
