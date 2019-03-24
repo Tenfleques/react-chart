@@ -8,10 +8,10 @@ Date.prototype.format = function (mask, utc) {
 class Canvas extends Component{
     constructor(props){
         super(props);
-        const w = Math.max(props.width,400);
+        const w = Math.max(props.width,220);
         this.state = {
             height : 400,
-            width : Math.max(w,600),
+            width : w,
             lower_height: 80,
             grid : {
                 y : true,
@@ -26,13 +26,13 @@ class Canvas extends Component{
                 },
                 y : {
                     threshold : .2,
-                    width : 30
+                    width : 20
                 },
                 font : "15px Arial",
                 font_color : "#999"
             },
             slider: {
-                x : 400,
+                x : .5*w,
                 y : 80,
                 width: 50,
                 height: -80,
@@ -51,6 +51,10 @@ class Canvas extends Component{
             y : props.y,
             x : props.x,
             scaled: {
+                range_x: [],
+                range_y: {},
+                x : [],
+                y : {}
             },
             info_box: -1
         }
@@ -113,7 +117,7 @@ class Canvas extends Component{
                 y_lower : y_lower,
                 all_y : allY
             }
-        });
+        },() => {this.plotAxes(xx,allY)});
         return {
             "x" : x,
             "y" : y,
@@ -139,134 +143,32 @@ class Canvas extends Component{
 
         return ((scaled_value - this.state.axes.y.width)/this.state.width) * range + min_x;
     }
-    scaleXAxis = (delta) => {
-        const sec = 1000, //default
-        mins = 60 * sec, // delta > 
-        hrs = 60 * mins, // delta > 6*hours
-        days = 24 * hrs, // delta > 4*days
-        weeks = 7 * days, // delta > 4*weeks 
-        months = 31 * days, // delta > 4 * months 
-        year = 365 * days; // delta > 3*year
-        var x = [];
-        const st_w = this.state.width;
-        const st_y_w = this.state.axes.y.width;
+    getFormat = (delta_x) => {
+        const sec = 1000, 
+        mins = 60 * sec,
+        hrs = 60 * mins, 
+        days = 24 * hrs, 
+        weeks = 7 * days,  
+        months = 31 * days; 
 
-        function populateTimeSeries(f_delta,time_factor,format){
-            let x = [];
-            const start_time = new Date(f_delta.range_x.min);
-            x.push(start_time
-                .format("monthDateYear")
-                ); 
-            //fill first entry with full dateTime
-            var i = start_time.getTime() + time_factor;
-    
-            let scaledPos = [];
-            scaledPos.push(0)
-            
-            while(true){
-                const dt = new Date(i);
-                x.push(dt.format(format));
-    
-                const scaledInterval = ((dt.getTime() - f_delta.range_x.min)/(f_delta.x))*(st_w) + st_y_w;
-    
-                scaledPos.push(scaledInterval);
-    
-                i += time_factor;
-                if(i > f_delta.range_x.max)
-                    break;
-            }
-        
-            return {
-                values: x,
-                plot : scaledPos
-            };
+        if(delta_x > 6*months){
+            return "monthYear";
         }
         
-        if(delta.x > 4*year){
-            x.push(new Date(delta.range_x.min).getFullYear());
-            for(var i = x[0] + 1; i <= delta.x + 1; i+= year){
-                x.push(i);
-            }
-        }else if(delta.x > 3*year){
-            x = populateTimeSeries(delta,6*months,"monthYear");
-        }else if(delta.x > year){
-            x = populateTimeSeries(delta,3**months,"monthYear");
-        }else if(delta.x > 6*months){
-            x = populateTimeSeries(delta,2*months,"monthYear");
+        if(delta_x > 8*weeks){
+            return "monthDateYear";
         }
+        if(delta_x > 2*days){
+            return "monthDate";
+        }
+        if(delta_x> mins){
+            return "time24";
+        }     
+        return "isoTime";
         
-        else if(delta.x > 4*months){
-            x = populateTimeSeries(delta,months,"monthDateYear");
-        }
-
-        else if(delta.x > 12*weeks){
-            x = populateTimeSeries(delta,3*weeks,"monthDateYear");
-        }else if(delta.x > 8*weeks){
-            x = populateTimeSeries(delta,2*weeks,"monthDateYear");
-        }else if(delta.x > 4*weeks){
-            x = populateTimeSeries(delta,weeks,"monthDate");
-        }
-
-        else if(delta.x > 3*weeks){
-            x = populateTimeSeries(delta,3*days,"monthDate");
-        }else if(delta.x > 1.5*weeks){
-            x = populateTimeSeries(delta,2*days,"monthDate");
-        }else if(delta.x > weeks){
-            x = populateTimeSeries(delta,days,"monthDate");
-        }
-        
-        else if(delta.x > 2*days){
-            x = populateTimeSeries(delta,18*hrs,"time24");
-        }else if(delta.x > days){
-            x = populateTimeSeries(delta, 12*hrs,"time24");
-        }else if(delta.x > 18*hrs){
-            x = populateTimeSeries(delta, 6*hrs,"time24");
-        }else if(delta.x > 12*hrs){
-            x = populateTimeSeries(delta,3*hrs,"time24");
-        }else if(delta.x > 8*hrs){
-            x = populateTimeSeries(delta,2*hrs,"time24");
-        }
-        
-        
-        else if(delta.x > hrs){
-            x = populateTimeSeries(delta,20*mins,"time24");
-        }else if(delta.x > 30*mins){
-            x = populateTimeSeries(delta,5*mins,"time24");
-        }else if(delta.x > 20*mins){
-            x = populateTimeSeries(delta,3*mins,"time24");
-        }else if(delta.x > 12*mins){
-            x = populateTimeSeries(delta,2*mins,"time24");
-        }else if(delta.x > mins){
-            x = populateTimeSeries(delta,mins,"time24");
-        }      
-        else if(delta.x > 30*sec){
-            x = populateTimeSeries(delta,5*sec,"isoTime");
-        }else if(delta.x > 20*sec){
-            x = populateTimeSeries(delta,3*sec,"isoTime");
-        }else if(delta.x > 12*sec){
-            x = populateTimeSeries(delta,2*sec,"isoTime");
-        }else{
-            x = populateTimeSeries(delta,sec,"isoTime");
-        }
-
-        return {
-            x : x.values,
-            x_plot: x.plot
-        }
     }
     plotAxes = (xx, yy) => {
-        const mn_x = Math.min(...xx),
-                mx_x = Math.max(...xx);
-
-       const delta = {
-            x : mx_x - mn_x,
-            range_x : {
-                min : mn_x,
-                max : mx_x
-            }
-        }
-        const x_axis  = this.scaleXAxis(delta);
-
+        
         const canvas = this.refs.canvas_upper;
         const ctx = canvas.getContext("2d");
 
@@ -293,7 +195,7 @@ class Canvas extends Component{
         } 
         for(var j = 0, i = 1; j < 10; j++, --i){
             const y_level = this.state.height +  i * 45;
-            if(this.state.grid.y){                
+            if(this.state.grid.y && j){                
                 ctx.beginPath();
                 ctx.lineTo(this.state.axes.y.width, y_level);
                 ctx.lineTo(this.state.width + this.state.axes.y.width, y_level);  
@@ -301,28 +203,34 @@ class Canvas extends Component{
             }              
             const real_y_val = this.invertScaleY(y_level,sorted_y[0],range_y);
             if(j){
-                ctx.fillText(Math.round(real_y_val),0, y_level );  
+                real_y_val && ctx.fillText(Math.round(real_y_val),0, y_level );  
             }
         }
+
+        const space = 3.5*this.state.axes.y.width;
+        const num_xs = Math.round(this.state.width/space);
         
-        const num_axis_entries = x_axis.x_plot.length;
-        const y_text = this.state.height + this.state.axes.x.height/2;
         
-        for(var k = 0; k < num_axis_entries; k++){
-            if(this.state.grid.x){
-                ctx.beginPath();
-                if(k === 0){
-                    ctx.moveTo(this.state.axes.y.width, 0);
-                    ctx.lineTo(this.state.axes.y.width, this.state.height);   
-                }else{
-                    ctx.moveTo(x_axis.x_plot[k], 0);
-                    ctx.lineTo(x_axis.x_plot[k], this.state.height);   
-                }                
-                
-                ctx.stroke(); 
+        const mn_x = Math.min(...xx),
+                mx_x = Math.max(...xx);
+
+        const format = this.getFormat(mx_x - mn_x);
+
+        var x_level =  this.state.axes.y.width + 5; //initial point
+        for(var j = 0, i = 1; j < num_xs; j++, --i){            
+            const closest_index = this.state.scaled.x.findIndex(a => a > x_level);
+            if(closest_index !== -1){
+                ctx.fillText(new Date(this.state.scaled.range_x[closest_index]).format(format),x_level, this.state.height + this.state.axes.x.height/2);
             }
-            ctx.fillText(x_axis.x[k],x_axis.x_plot[k], y_text);
-        }       
+            if(this.state.grid.y && j){                
+                ctx.beginPath();
+                ctx.lineTo(x_level, this.state.height + this.state.axes.x.height/2);
+                ctx.lineTo(x_level, this.state.height + this.state.axes.x.height/2);  
+                ctx.stroke(); 
+            }             
+            x_level += space;
+        }
+         
     }
     plotUpper = (xx, yy) => {
         if(!xx){
@@ -345,9 +253,7 @@ class Canvas extends Component{
         for(var k in yy){
             y[k] = yy[k].slice(start_index, end_index);
         }
-
-        const scaled = this.scaleData(x,y);
-        this.plotAxes(x, scaled.all_y);
+        const scaled = this.scaleData(x,y);  
 
         ctx.lineWidth = .5;
         for(var i in scaled.y){
@@ -364,11 +270,7 @@ class Canvas extends Component{
         if(!x){
             x = this.state.x;
             y = this.state.y;
-        }else{
-            this.setState({x:x});
-            this.setState({y:y});
         }
-        
 
         const scaled = this.scaleData(x,y);
         const canvas = this.refs.canvas_lower;
@@ -383,9 +285,14 @@ class Canvas extends Component{
                 ctx.stroke();  
             }
         }
+        this.setState({
+            x: x,
+            y: y
+        }, () => {
+            this.plotSlider();
+            this.plotUpper(x,y);   
+        });
         
-        this.plotSlider();
-        this.plotUpper();   
     }
     plotSlider = () =>{
         const canvas = this.refs.canvas_lower;
@@ -533,7 +440,7 @@ class Canvas extends Component{
         }
         const index = this.state.scaled.x.findIndex((a) => {
             return a > rel_pos;
-        }) - 1
+        });
         
 
         if(index >= 0){
@@ -550,13 +457,17 @@ class Canvas extends Component{
                 ctx.lineTo(rel_pos, this.state.height);
                 ctx.stroke(); 
 
-                /*ctx.lineWidth = "2";
-                for(var i in this.state.scaled.y){
-                    ctx.beginPath();
-                    ctx.strokeStyle = this.props.colors[i]
-                    ctx.arc(rel_pos, this.state.scaled.y[i][index], 5, 0, 2 * Math.PI);
-                    ctx.stroke();
-                } */             
+                const finx = this.state.scaled.x.findIndex((a) => Math.abs(a - rel_pos) < 3 );
+                if(finx !== -1){
+                    ctx.lineWidth = "2";
+                    for(var i in this.state.scaled.y){
+                        ctx.beginPath();
+                        ctx.strokeStyle = this.props.colors[i]
+                        ctx.arc(rel_pos, this.state.scaled.y[i][finx], 5, 0, 2 * Math.PI);
+                        ctx.stroke();
+                    }
+                }
+                
             })                      
         }        
     }
@@ -567,18 +478,19 @@ class Canvas extends Component{
         }
         const date = this.state.scaled.range_x[index];
         const details = []
-            for(var i in this.state.y) {
-                const col = this.props.colors[i]
-                details.push(<div key={i} style={{color : col}} className="d-inline-flex mr-1 text-center">
-                        <h4>
-                            {
-                                this.state.scaled.range_y[i][index]
-                            } <br/>
-                            <small>{i}</small>
-                        </h4>
-                    </div>
-                );
-            };
+
+        for(var i in this.state.scaled.range_y) {
+            const col = this.props.colors[i]
+            details.push(<div key={i} style={{color : col}} className="d-inline-flex mr-1 text-center">
+                    <h4>
+                        {
+                            this.state.scaled.range_y[i][index]
+                        } <br/>
+                        <small>{this.props.names[i]}</small>
+                    </h4>
+                </div>
+            );
+        };
         return (
             <div className="">
                 <div className="info-date" key={"date"}>
@@ -604,6 +516,7 @@ class Canvas extends Component{
                     width={this.state.width + 2*this.state.axes.y.width} 
                     height={this.state.height + this.state.axes.x.height} 
                     onMouseMove={this.moveOverUpper} 
+                    onTouchMove={this.moveOverUpper} 
                 />
                 <canvas 
                     ref="canvas_lower" 

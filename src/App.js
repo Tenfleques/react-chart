@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCheckCircle} from '@fortawesome/free-solid-svg-icons'
 import { faMoon} from '@fortawesome/free-solid-svg-icons'
 
 import Chart from "./chart/Chart"

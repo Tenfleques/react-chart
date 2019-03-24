@@ -1,14 +1,8 @@
 .App {
   display: block;
 }
-.container {
-  flex: 1;
-  justify-content: center;
-  align-items: center;
-  background-color: '#F5FCFF';
-  border-width: 1;
-  flex-direction: row;
-  flex-wrap: wrap;
+div#root{
+  overflow-x: hidden;
 }
 .w-100{
   right:0;
@@ -122,6 +116,24 @@ div.row{
   border-radius: .61rem;
   border-style: solid;
   border-color: #ccc;
-  border-width: .1px;
+  border-width: 1px;
   padding: .3rem;
+}
+
+@media only screen and (max-width : 500px){
+  .mr-3, .mx-3{
+    margin-right: 0.3rem; 
+  }
+  .ml-3, .mx-3{
+    margin-left: 0.3rem; 
+  }
+  .mr-1, .mx-1{
+    margin-right: 0.1rem; 
+  }
+  .ml-1, .mx-1{
+    margin-left: 0.1rem; 
+  }
+  button{
+    margin: .1rem;
+  }
 }

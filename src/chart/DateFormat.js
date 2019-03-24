@@ -78,13 +78,14 @@ const dateFormat = function () {
 }();
 
 dateFormat.masks = {
-	"default":      "ddd mmm dd yyyy HH:MM:ss",
-	dayMonthDateYear: 	"ddd, mmm d, yyyy",
-	monthDate:     	"mmm d",
-	monthDateYear:  "mmm d, yyyy",
-	monthYear: 		"mmm yyyy",
-	time24:         "HH:MM",
-	isoTime:        "HH:MM:ss"
+	"default"	      	:"ddd mmm dd yyyy HH:MM:ss",
+	dayMonthDateYear 	:"ddd, mmm d, yyyy",
+	monthDate     		:"mmm d",
+	monthDateYear	  	:"mmm d, yyyy",
+	monthYear 			:"mmm yyyy",
+	time24	         	:"HH:MM",
+	isoTime				:"HH:MM:ss",
+	yearOnly			:"yyyy"
 };
 // Internationalization strings
 

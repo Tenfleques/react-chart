@@ -80,7 +80,8 @@ class Chart extends Component{
                     ref={this.canvasElement} 
                     x={this.state.x} 
                     y={this.activeData()} 
-                    colors={this.state.data.colors} 
+                    colors={this.state.data.colors}
+                    names={this.state.data.names} 
                     width={this.getWidth()}
                     />
 
