@@ -217,7 +217,7 @@ class Canvas extends Component{
         } 
         for(var j = 0, i = 1; j < 10; j++, --i){
             const y_level = this.state.height +  i * 45;
-            if(this.state.grid.y && j){                
+            if(this.state.grid.y && j > 1){                
                 ctx.beginPath();
                 ctx.lineTo(this.state.axes.y.width, y_level);
                 ctx.lineTo(this.state.width + this.state.axes.y.width, y_level);  
@@ -228,6 +228,10 @@ class Canvas extends Component{
                 real_y_val && ctx.fillText(Math.round(real_y_val),0, y_level );  
             }
         }
+        ctx.beginPath();
+        ctx.lineTo(this.state.axes.y.width - 5, this.state.height);
+        ctx.lineTo(this.state.width + this.state.axes.y.width, this.state.height );  
+        ctx.stroke();
 
         const space = 3.5*this.state.axes.y.width;
         const num_xs = Math.round(this.state.width/space);
