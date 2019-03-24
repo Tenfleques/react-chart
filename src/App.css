@@ -1,33 +1,127 @@
 .App {
+  display: block;
+}
+.container {
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+  background-color: '#F5FCFF';
+  border-width: 1;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+.w-100{
+  right:0;
+  width: 100%;
+}
+.fixed-top{
+  position: fixed;
+  left:0;
+  right:0;
+  top: 0;
+  z-index: 999999;
+}
+.App.light, .info-box{
+  background: #ffffff;
+}
+.App.mojave, .App .mojave, .mojave .info-box{
+  background-color: #081B33;
+  color: #767D92;
+}
+.App.charcoal, .App .charcoal {
+  background-color: #353C51;
+}
+.App.dracula {
+  background-color: #282a36;
+}
+
+.App.light canvas, .App.dark canvas{
+  background-color: transparent;
+}
+
+button{
+  font-size: 1.5rem;
+  margin: 1rem;
+  border-radius: 3rem;
+  padding: 0.3rem 1rem;
+  border-style: solid;
+  border-width: 1px;
+  background: none;
+}
+div{
   text-align: center;
 }
 
-.App-logo {
-  animation: App-logo-spin infinite 20s linear;
-  height: 40vmin;
-  pointer-events: none;
+canvas {
+  margin: 1.5rem;
 }
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+div.chart-area{
+  width: 100%;
+}
+div.row{
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  vertical-align: middle;
+}
+.mr-3, .mx-3{
+  margin-right: 2.3rem; 
+}
+.ml-3, .mx-3{
+  margin-left: 2.3rem; 
+}
+.mr-1, .mx-1{
+  margin-right: 0.8rem; 
+}
+.ml-1, .mx-1{
+  margin-left: 0.8rem; 
 }
 
-.App-link {
-  color: #61dafb;
+.mb-1, .my-1{
+  margin-bottom: 0.8rem; 
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.mb-3, .my-3{
+  margin-bottom: 2.3rem; 
+}
+
+.mt-5, .my-5{
+  margin-top: 5rem;
+}
+.mt-3, .my-3{
+  margin-top: 2.3rem; 
+}
+
+.mt-1, .my-1{
+  margin-top: 1.4rem; 
+}
+
+.pt-3{
+  padding-top: 3rem;
+}
+
+.text-center{
+  text-align: center;
+}
+.d-block{
+  display: block;
+}
+.d-flex{
+  display: flex;
+}
+.d-inline{
+  display: inline;
+}
+.d-inline-flex{
+  display: inline-flex;
+}
+.d-none{
+  display: none;
+}
+.info-box{
+  position: absolute;
+  text-align: center;
+  border-radius: .61rem;
+  border-style: solid;
+  border-color: #ccc;
+  border-width: .1px;
+  padding: .3rem;
 }
