@@ -81,6 +81,7 @@ dateFormat.masks = {
 	"default"	      	:"ddd mmm dd yyyy HH:MM:ss",
 	dayMonthDateYear 	:"ddd, mmm d, yyyy",
 	monthDate     		:"mmm d",
+	monthDateTime     	:"mmm d, HH:MM",
 	monthDateYear	  	:"mmm d, yyyy",
 	monthYear 			:"mmm yyyy",
 	time24	         	:"HH:MM",

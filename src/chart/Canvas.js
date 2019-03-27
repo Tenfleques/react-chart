@@ -15,7 +15,7 @@ class Canvas extends Component{
             lower_height: 80,
             grid : {
                 y : true,
-                x : false,
+                x : true,
                 strokeStyle : "rgba(0,0,0,.9)",
                 lineWidth : .12
             },
@@ -36,7 +36,7 @@ class Canvas extends Component{
                 y : 80,
                 width: 50,
                 height: -80,
-                min_width: 10,
+                min_width: 70,
                 lineWidth : 6,
                 stroke: "#ddd",
                 fill: "rgba(255,255,255,0.8)",
@@ -128,16 +128,7 @@ class Canvas extends Component{
                 y_lower[i].push(ssy_lower);
             }
         }
-        this.setState({
-            scaled : {
-                range_x : xx,
-                range_y : yy,
-                x: x,
-                y: y,
-                y_lower : y_lower,
-                all_y : allY
-            }
-        });
+      
         return {
             range_x : xx,
             range_y : yy,
@@ -191,6 +182,8 @@ class Canvas extends Component{
     }
     plotAxes = (xx, yy) => {
         
+        console.log(xx.length);
+
         const canvas = this.refs.canvas_upper;
         const ctx = canvas.getContext("2d");
 
@@ -232,70 +225,72 @@ class Canvas extends Component{
         ctx.lineTo(this.state.axes.y.width - 5, this.state.height);
         ctx.lineTo(this.state.width + this.state.axes.y.width, this.state.height );  
         ctx.stroke();
-
-        const space = 3.5*this.state.axes.y.width;
-        const num_xs = Math.round(this.state.width/space);
         
-        
-        const mn_x = Math.min(...xx),
-                mx_x = Math.max(...xx);
-
-        const format = this.getFormat(mx_x - mn_x);
-        var x_level =  this.state.axes.y.width - 5; //initial point
-                      
-        ctx.beginPath();
-        ctx.lineTo(x_level, 0);
-        ctx.lineTo(x_level, this.state.height);  
-        ctx.stroke(); 
-        
-        for(var j = 0, i = 1; j < num_xs; j++, --i){            
-            const closest_index = this.state.scaled.x.findIndex(a => a > x_level);
-            if(closest_index !== -1){
-                ctx.fillText(new Date(this.state.scaled.range_x[closest_index]).format(format),x_level, this.state.height + this.state.axes.x.height/2);
-            }            
-            x_level += space;
+        const format = this.getFormat(xx[xx.length - 1].time - xx[0].time)
+        for(var ind = 0; ind < xx.length; ind++){ 
+            ctx.fillText(new Date(xx[ind].time).format(format),xx[ind].pos, this.state.height + this.state.axes.x.height/2);
             if(this.state.grid.x){                
                 ctx.beginPath();
-                ctx.lineTo(x_level, 0);
-                ctx.lineTo(x_level, this.state.height);  
-                ctx.stroke(); 
-            } 
+                ctx.lineTo(xx[ind].pos, 0);
+                ctx.lineTo(xx[ind].pos, this.state.height);  
+                ctx.stroke();                     
+            }                
         }
     }
-    plotUpper = (xx, yy) => {
+    plotUpper = (xx, yy, line_pos) => {
+        let scaled 
         if(!xx){
             xx = this.state.x;
             yy = this.state.y;
+            scaled = this.state.scaled;
         }
-        const canvas = this.refs.canvas_upper;
-        const ctx = canvas.getContext("2d");
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
         const slider = this.state.slider;
         const slider_rel_x = slider.x - this.state.axes.y.width;
-
+        
         const start_index = Math.floor(xx.length * slider_rel_x/(this.state.width)) ;
-
         const end_index = Math.round(xx.length * (slider_rel_x + slider.width)/(this.state.width- 1.9*slider.lineWidth));
+        let x = xx.slice(start_index, end_index), y = {}, all_y = [];
 
-        let x = xx.slice(start_index, end_index), y = {};
         for(var k in yy){
             y[k] = yy[k].slice(start_index, end_index);
+            all_y = all_y.concat(y[k]);
         }
-        const scaled = this.scaleData(x,y);  
-        //console.log(scaled)
-        this.plotAxes(scaled.range_x,scaled.all_y)
+        scaled = this.scaleData(x,y); 
+        this.setState({
+            scaled : scaled
+        },() => {
+            const canvas = this.refs.canvas_upper;
+            const ctx = canvas.getContext("2d");
+            ctx.clearRect(0, 0, canvas.width, canvas.height);     
 
-        ctx.lineWidth = .5;
-        for(var i in scaled.y){
-            ctx.strokeStyle = this.props.colors[i];
-            ctx.beginPath();
-            for(var j = 0; j < scaled.y[i].length; ++ j){
-                ctx.lineTo(scaled.x[j], scaled.y[i][j] );
-                ctx.stroke();  
+            ctx.lineWidth = .5;
+            let k = 0;
+            var last_point = scaled.x[0];
+            let x_axis_points = [];
+            for(var i in scaled.y){
+                ctx.strokeStyle = this.props.colors[i];
+                ctx.beginPath();
+                const l_y = scaled.y[i].length;
+                for(var j = 0; j < l_y; ++ j){
+                    ctx.lineTo(scaled.x[j], scaled.y[i][j] );
+                    ctx.stroke();  
+                    if(!k){
+                        if((Math.abs(scaled.x[j] - last_point) > 100 || j === 0) && j < l_y - 1){
+                            x_axis_points.push({
+                                "time" : scaled.range_x[j+1],
+                                "pos"  : scaled.x[j]
+                            })
+                            last_point = scaled.x[j];                            
+                        }                        
+                    }                    
+                }
+                ++ k;                
             }
-        }
-        
+            this.plotAxes(x_axis_points,all_y);
+            if(line_pos){
+                this.drawLine(line_pos);
+            }
+        });        
     }
     plotLower = (x,y, width) => {
         if(!x){
@@ -306,16 +301,17 @@ class Canvas extends Component{
         const st = this.state;
         st.x = x;
         st.y = y;
+        const scaled = this.scaleData(x,y);
         if(width){
             width = Math.max(width,220)
             st.width = width;
             st.slider.x = 0.5 * width;
             st.slider.width = 0.4 * width;
             st.info_box.index = -1;
+            st.scaled = scaled
         }
-
-        this.setState(st, () => {
-            const scaled = this.scaleData(x,y);
+        
+        this.setState(st, () => {            
             const canvas = this.refs.canvas_lower;
             const ctx = canvas.getContext("2d");
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -329,7 +325,7 @@ class Canvas extends Component{
                 }
             }
             this.plotSlider();
-            this.plotUpper(x,y);   
+            this.plotUpper();   
         });
         
     }
@@ -466,11 +462,34 @@ class Canvas extends Component{
         }
         this.setState({slider},this.plotLower);
     }
+    drawLine(rel_pos){
+        const canvas = this.refs.canvas_upper;
+        const ctx = canvas.getContext("2d");
+
+        ctx.strokeStyle = "#333";
+        ctx.fillStyle = "#fff";
+        ctx.lineWidth = "1";
+        ctx.beginPath()
+        ctx.lineTo(rel_pos, 0);
+        ctx.lineTo(rel_pos, this.state.height);
+        ctx.stroke(); 
+
+        const finx = this.state.scaled.x.findIndex((a) => Math.abs(a - rel_pos) < 3 );
+        if(finx !== -1){
+            ctx.lineWidth = "4";
+            for(var i in this.state.scaled.y){
+                ctx.beginPath();
+                ctx.strokeStyle = this.props.colors[i]
+                ctx.arc(rel_pos, this.state.scaled.y[i][finx], 3, 0, 2 * Math.PI);
+                ctx.stroke();
+                ctx.fill();
+            }
+        }
+    }
     moveOverUpper = (e) =>{
         const canvas = this.refs.canvas_upper;
         const pos = e.clientX || e.touches[0].clientX;;
         const rel_pos = pos - canvas.getBoundingClientRect().left;
-        const ctx = canvas.getContext("2d");
 
         if(rel_pos < this.state.grid.y.width){
             return;
@@ -483,28 +502,10 @@ class Canvas extends Component{
         if(index >= 0){
             this.setState({info_box : {
                     index : index,
-                    x : rel_pos - this.state.axes.y.width
+                    x : rel_pos + this.state.axes.y.width
                 }
             },() =>{
-                this.plotUpper()    
-                ctx.strokeStyle = "#333";
-                ctx.lineWidth = "1";
-                ctx.beginPath()
-                ctx.lineTo(rel_pos, 0);
-                ctx.lineTo(rel_pos, this.state.height);
-                ctx.stroke(); 
-
-                const finx = this.state.scaled.x.findIndex((a) => Math.abs(a - rel_pos) < 3 );
-                if(finx !== -1){
-                    ctx.lineWidth = "2";
-                    for(var i in this.state.scaled.y){
-                        ctx.beginPath();
-                        ctx.strokeStyle = this.props.colors[i]
-                        ctx.arc(rel_pos, this.state.scaled.y[i][finx], 5, 0, 2 * Math.PI);
-                        ctx.stroke();
-                    }
-                }
-                
+                this.plotUpper(this.state.x, this.state.y, rel_pos);
             })                      
         }        
     }

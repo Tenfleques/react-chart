@@ -55,6 +55,7 @@ button.action-btn {
 }
 .toggle-grid.active{
   background-color: rgb(61, 194, 63);
+  color: #eee;
 }
 div{
   text-align: center;

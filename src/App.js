@@ -10,7 +10,7 @@ class App extends Component {
     super(props);
     this.state = {
       themes : ["App light", "App mojave"],
-      current_theme: 0,
+      current_theme: localStorage.getItem("theme") || 0,
       width : 400
     }   
   }
@@ -18,14 +18,17 @@ class App extends Component {
     return (            
         <FontAwesomeIcon icon={faMoon} className="theme-switcher fa-2x mx-3 mt-1" 
         onClick={() => {
+            const theme = (this.state.current_theme === 0)? 1 : 0;
+            localStorage.setItem("theme", theme);
             this.setState({
-              current_theme : (this.state.current_theme === 0)? 1 : 0
+              current_theme : theme
             })
         }
       }/>
     )
   }
   render() {
+    console.log(localStorage.getItem("theme"))
     return (
       <div className={this.state.themes[this.state.current_theme]} >
         <div className="charcoal fixed-top row">

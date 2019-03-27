@@ -16,7 +16,7 @@ class Chart extends Component{
             x : [],
             y : {},
             width : document.body.offsetWidth - 350,
-            grid_x : false,
+            grid_x : true,
             grid_y : true
         }
         for (var ky in this.state.names){
@@ -74,7 +74,7 @@ class Chart extends Component{
                             let active = this.state.active;
                             active[k[0]] = !active[k[0]];
                             this.setState({active})
-                            this.canvasElement.current.plotLower(this.state.x, this.activeData(), this.state.width);
+                            this.canvasElement.current.plotLower(this.state.x, this.activeData());
                         }
                     }
                 >
